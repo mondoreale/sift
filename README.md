@@ -1,0 +1,88 @@
+# Job Search
+
+A single Next.js application for JSON job ingestion, approval, title search,
+country filtering, and salary/date sorting. Frontend and API share one port.
+
+## Run
+
+Use Node 22 and pnpm 10.32.1.
+
+```sh
+pnpm install
+pnpm run dev
+```
+
+Open http://127.0.0.1:3000. Use `--port 3001` for another port.
+For production, run `pnpm run build` followed by `pnpm run start`.
+
+## Checks
+
+```sh
+pnpm run format:check
+pnpm run typecheck
+pnpm run test
+pnpm run build
+pnpm exec playwright install chromium
+pnpm run test:browser
+TEST_BUILT=1 pnpm run test:browser
+```
+
+Browser tests cover desktop/mobile and start their own server on port 3100;
+stop the development server first. Screenshots and traces go to `test-results/`.
+Use `pnpm run format` to apply the Prettier rules.
+
+## Structure
+
+- `src/app`: pages, layout, and API routes.
+- `src/client`: interactive board and HTTP requests.
+- `src/contracts`: shared Zod schemas and types.
+- `src/server`: normalization, approval, ingestion, and in-memory storage.
+- `fixtures`: original assignment data and synthetic demo listings.
+
+## Ingestion and Approval
+
+Startup loads `fixtures/assignment.json` and `fixtures/demo.json`. The original
+20 records all reject under the explicit-evidence policy; the demo publishes
+eight synthetic listings identified by `Demo:` company names.
+
+Override feeds with a nonempty JSON array of paths, relative to the working directory:
+
+```sh
+JOB_FILES='["fixtures/demo.json"]' pnpm run dev
+```
+
+Each feed must be a JSON array. Invalid files abort startup; invalid records
+reject individually. All rejection reasons are logged as structured JSON to stderr.
+Restart to reload feeds. Storage is process-local and disappears on restart.
+
+Approval requires:
+
+- A nonblank title and explicit boolean remote status; remote anywhere or in-person US/CA.
+- Explicit full-time employment.
+- Positive salary, supported currency, and explicit `annual`/`yearly` or `hourly` unit;
+  converted pay must exceed USD 100,000/year or USD 45/hour. No missing-field defaults
+  or hourly-by-value inference.
+- Recognized non-staffing classification: `Direct Employer`, `Consulting Agency`,
+  or `Non-Staffing`. Missing/unknown classifications and staffing firms reject.
+- A nonempty description and trusted `English`/`en` label, or `French`/`fr` for CA.
+  Description language is **not detected or verified**.
+
+Illustrative USD conversion rates: USD 1, CAD 0.74, GBP 1.27, EUR 1.08.
+Original pay is preserved; hourly USD is annualized at 2,080 hours **only for sorting**.
+Missing or invalid posting dates remain unknown. Approval rules are independently
+testable; an injected salary policy can introduce exceptions without bypassing other rules.
+
+## API
+
+- `GET /api/health`: readiness, `{ "status": "ok" }`.
+- `GET /api/jobs?search=Engineer&country=CA&sortBy=salary&sortOrder=desc`.
+
+Search is a case-insensitive title substring, capped at 200 characters. Country is
+an exact stated-country match, including remote jobs. Filters combine with AND.
+Sorting defaults to newest first; salary uses annualized USD, unknown dates are
+always last, and ties use ID.
+
+Responses contain `items`, matching `total`, and unfiltered `availableCountries`.
+Invalid or repeated query parameters return `400`; internal failures return a safe `500`.
+
+No database, persistence, uploads, external fetching, deduplication, or pagination.

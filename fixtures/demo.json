@@ -1,0 +1,158 @@
+[
+    {
+        "title": "Platform Engineer",
+        "description": "Build reliable developer tooling and production services.",
+        "company": "Demo: Platform Works",
+        "location": "Austin, TX, USA",
+        "salary": {
+            "value": 145000,
+            "currency": "USD",
+            "unit": "annual"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "2026-10-01",
+        "company_type": "Direct Employer",
+        "language": "English",
+        "remote": false
+    },
+    {
+        "title": "Data Engineer",
+        "description": "Développez des pipelines de données fiables pour notre équipe.",
+        "company": "Demo: Data Studio",
+        "location": {
+            "city": "Montreal",
+            "state": "QC",
+            "country": "Canada"
+        },
+        "salary": {
+            "value": 150000,
+            "currency": "CAD",
+            "unit": "annual"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "2026-09-28",
+        "company_type": "Direct Employer",
+        "language": "French",
+        "remote": false
+    },
+    {
+        "title": "Remote Systems Engineer",
+        "description": "Maintain distributed systems with a remote team.",
+        "company": "Demo: Systems Collective",
+        "location": "London, UK",
+        "salary": {
+            "value": 90000,
+            "currency": "GBP",
+            "unit": "annual"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "2026-09-30",
+        "company_type": "Consulting Agency",
+        "language": "English",
+        "remote": true
+    },
+    {
+        "title": "Cloud Engineer",
+        "description": "Improve deployment infrastructure and observability.",
+        "company": "Demo: Cloud Workshop",
+        "location": {
+            "city": "Berlin",
+            "state": "",
+            "country": "Germany"
+        },
+        "salary": {
+            "value": 110000,
+            "currency": "EUR",
+            "unit": "annual"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "2026-09-29",
+        "company_type": "Direct Employer",
+        "language": "English",
+        "remote": true
+    },
+    {
+        "title": "Software Engineer",
+        "description": "Develop software with a globally distributed team.",
+        "company": "Demo: Open Team",
+        "location": "Remote",
+        "salary": {
+            "value": 46,
+            "currency": "USD",
+            "unit": "hourly"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "",
+        "company_type": "Direct Employer",
+        "language": "English",
+        "remote": true
+    },
+    {
+        "title": "Product Analyst",
+        "description": "Analyze product performance and customer needs.",
+        "company": "Demo: Product Lab",
+        "location": "Boston, MA, USA",
+        "salary": {
+            "value": 120000,
+            "currency": "USD",
+            "unit": "annual"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "2026-09-27",
+        "company_type": "Direct Employer",
+        "language": "English",
+        "remote": false
+    },
+    {
+        "title": "UX Designer",
+        "description": "Design accessible interfaces for operational tools.",
+        "company": "Demo: Interface Studio",
+        "location": {
+            "city": "",
+            "state": "CA",
+            "country": "USA"
+        },
+        "salary": {
+            "value": 120000,
+            "currency": "USD",
+            "unit": "annual"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "2026-09-27",
+        "company_type": "Direct Employer",
+        "language": "English",
+        "remote": false
+    },
+    {
+        "title": "Security Engineer",
+        "description": "Improve application security and incident response.",
+        "company": "Demo: Security Practice",
+        "location": "Toronto, ON, Canada",
+        "salary": {
+            "value": 65,
+            "currency": "USD",
+            "unit": "hourly"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": null,
+        "company_type": "Direct Employer",
+        "language": "English",
+        "remote": true
+    },
+    {
+        "title": "Threshold Example",
+        "description": "Synthetic rejection at the exact annual threshold.",
+        "company": "Demo: Rejected Example",
+        "location": "Austin, TX, USA",
+        "salary": {
+            "value": 100000,
+            "currency": "USD",
+            "unit": "annual"
+        },
+        "employment_type": "Full-Time",
+        "posting_date": "2026-10-02",
+        "company_type": "Direct Employer",
+        "language": "English",
+        "remote": false
+    }
+]
