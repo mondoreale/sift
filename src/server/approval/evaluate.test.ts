@@ -123,12 +123,16 @@ describe('explicit evidence and approval', () => {
             status: 'approved',
             job: { company: null, postingDate: null },
         });
+        expect(await decide({ salary: { value: 120000, currency: 'USD' } })).toMatchObject({
+            status: 'approved',
+            job: { compensation: { period: 'annual' } },
+        });
         for (const overrides of [
             { remote: 'true' },
             { company_type: null },
             { description: '' },
             { language: '' },
-            { salary: { value: 120000, currency: 'USD' } },
+            { salary: { value: 120000, currency: 'USD', unit: 'monthly' } },
             { salary: { value: 120000, currency: 'ZZZ', unit: 'annual' } },
             { salary: { value: Infinity, currency: 'USD', unit: 'annual' } },
         ]) {

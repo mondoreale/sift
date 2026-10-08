@@ -3,9 +3,23 @@ import { describe, expect, it, vi } from 'vitest';
 import type { FxRateProvider } from '../approval/evaluate';
 import { feedPaths, mockedUsdRateProvider } from '../config';
 import { ingestFiles } from './ingest';
+import { normalize } from './normalize';
 
 describe('startup ingestion', () => {
-    it('preserves the supplied sample and reports every original rejection', async () => {
+    it.each([
+        [{ value: 120000, currency: 'USD' }, 'annual'],
+        [{ value: 120000, currency: 'USD', unit: 'annual' }, 'annual'],
+        [{ value: 120000, currency: 'USD', unit: 'yearly' }, null],
+        [{ value: 65, currency: 'USD', unit: 'hourly' }, 'hourly'],
+        [{ value: 120000, currency: 'USD', unit: 'monthly' }, null],
+        [{ value: 120000, currency: 'USD', unit: '' }, null],
+        [{ value: 120000, currency: 'USD', unit: null }, null],
+        [120000, null],
+    ])('normalizes salary %j to period %s', (salary, period) => {
+        expect(normalize({ salary }).candidate?.period).toBe(period);
+    });
+
+    it('preserves the supplied sample', async () => {
         const markdown = await readFile(
             new URL('../../../instructions.md', import.meta.url),
             'utf8',
@@ -13,16 +27,28 @@ describe('startup ingestion', () => {
         const supplied = JSON.parse(markdown.split('```json\n')[1]!.split('```')[0]!);
         const paths = feedPaths();
         expect(JSON.parse(await readFile(paths[0]!, 'utf8'))).toEqual(supplied);
+    });
+
+    it('defaults object salaries to annual and reports remaining assignment rejections', async () => {
+        const paths = feedPaths();
         const { jobs, review } = await ingestFiles([paths[0]!], {
             rateProvider: mockedUsdRateProvider,
         });
-        expect(jobs).toEqual([]);
+        expect(jobs.map((job) => job.title)).toEqual([
+            'Backend Engineer',
+            'Machine Learning Engineer',
+            'Agile Project Lead',
+            'QA Automation Engineer',
+            'UX Designer',
+            'Cybersecurity Specialist',
+            'Customer Success Manager',
+        ]);
         expect(review).toHaveLength(20);
         expect(review.map((entry) => entry.reasons.map((reason) => reason.code))).toEqual([
-            ['SALARY_PERIOD_REQUIRED'],
-            ['EMPLOYMENT_INELIGIBLE', 'STAFFING_FIRM', 'SALARY_PERIOD_REQUIRED'],
-            ['SALARY_PERIOD_REQUIRED'],
-            ['SALARY_PERIOD_REQUIRED'],
+            [],
+            ['EMPLOYMENT_INELIGIBLE', 'STAFFING_FIRM', 'SALARY_TOO_LOW'],
+            [],
+            [],
             ['EMPLOYMENT_INELIGIBLE'],
             ['SALARY_PERIOD_REQUIRED', 'SALARY_CURRENCY_REQUIRED'],
             [
@@ -33,26 +59,33 @@ describe('startup ingestion', () => {
             ],
             ['SALARY_PERIOD_REQUIRED', 'SALARY_CURRENCY_REQUIRED'],
             ['SALARY_PERIOD_REQUIRED', 'SALARY_CURRENCY_REQUIRED'],
-            ['SALARY_PERIOD_REQUIRED'],
-            ['SALARY_PERIOD_REQUIRED'],
+            [],
+            [],
             ['SALARY_PERIOD_REQUIRED', 'SALARY_CURRENCY_REQUIRED'],
-            ['LOCATION_INELIGIBLE', 'LANGUAGE_INELIGIBLE', 'SALARY_PERIOD_REQUIRED'],
+            ['LOCATION_INELIGIBLE', 'LANGUAGE_INELIGIBLE', 'SALARY_TOO_LOW'],
             ['EMPLOYMENT_INELIGIBLE', 'SALARY_PERIOD_REQUIRED', 'SALARY_CURRENCY_REQUIRED'],
-            ['SALARY_PERIOD_REQUIRED'],
+            [],
             ['SALARY_PERIOD_REQUIRED', 'SALARY_CURRENCY_REQUIRED'],
             ['EMPLOYMENT_INELIGIBLE', 'STAFFING_FIRM'],
             ['SALARY_PERIOD_REQUIRED', 'SALARY_CURRENCY_REQUIRED'],
-            ['SALARY_PERIOD_REQUIRED'],
+            [],
             ['TITLE_REQUIRED', 'EMPLOYMENT_INELIGIBLE', 'STAFFING_FIRM', 'SALARY_TOO_LOW'],
         ]);
     });
 
-    it('loads both files, publishes only explicit demo jobs and assigns stable IDs', async () => {
+    it('loads both files, publishes approved jobs and assigns stable IDs', async () => {
         const log = vi.fn();
         const first = await ingestFiles(feedPaths(), { rateProvider: mockedUsdRateProvider, log });
         const second = await ingestFiles(feedPaths(), { rateProvider: mockedUsdRateProvider });
         expect(first.jobs).toEqual(second.jobs);
         expect(first.jobs.map((job) => job.title)).toEqual([
+            'Backend Engineer',
+            'Machine Learning Engineer',
+            'Agile Project Lead',
+            'QA Automation Engineer',
+            'UX Designer',
+            'Cybersecurity Specialist',
+            'Customer Success Manager',
             'Platform Engineer',
             'Data Engineer',
             'Remote Systems Engineer',
@@ -62,13 +95,13 @@ describe('startup ingestion', () => {
             'UX Designer',
             'Security Engineer',
         ]);
-        expect(first.jobs.every((job) => job.company?.startsWith('Demo:'))).toBe(true);
-        expect(new Set(first.jobs.map((job) => job.id)).size).toBe(8);
+        expect(first.jobs.filter((job) => job.company?.startsWith('Demo:'))).toHaveLength(8);
+        expect(new Set(first.jobs.map((job) => job.id)).size).toBe(15);
         expect(log).toHaveBeenLastCalledWith({
             event: 'ingestion_summary',
             total: 29,
-            approved: 8,
-            rejected: 21,
+            approved: 15,
+            rejected: 14,
         });
         expect(JSON.stringify(log.mock.calls)).not.toContain('Temporary support role.');
     });

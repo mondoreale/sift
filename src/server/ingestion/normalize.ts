@@ -102,7 +102,7 @@ export function normalize(raw: unknown): {
 
     const salary = object(fields.salary);
     const amount = salary ? salary.value : fields.salary;
-    const unit = text(salary?.unit)?.toLowerCase();
+    const unit = salary && salary.unit === undefined ? 'annual' : text(salary?.unit)?.toLowerCase();
 
     const date = text(fields.posting_date);
     const validDate =
@@ -132,12 +132,7 @@ export function normalize(raw: unknown): {
             amount:
                 typeof amount === 'number' && Number.isFinite(amount) && amount > 0 ? amount : null,
             currency: text(salary?.currency)?.toUpperCase() ?? null,
-            period:
-                unit === 'annual' || unit === 'yearly'
-                    ? 'annual'
-                    : unit === 'hourly'
-                      ? 'hourly'
-                      : null,
+            period: unit === 'annual' ? 'annual' : unit === 'hourly' ? 'hourly' : null,
             employmentType: text(fields.employment_type)?.toLowerCase() ?? null,
             companyType: text(fields.company_type)?.toLowerCase() ?? null,
             language: text(fields.language)?.toLowerCase() ?? null,

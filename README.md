@@ -42,7 +42,7 @@ Use `pnpm run format` to apply the Prettier rules.
 ## Ingestion and Approval
 
 Startup loads `fixtures/assignment.json` and `fixtures/demo.json`. The original
-20 records all reject under the explicit-evidence policy; the demo publishes
+20 records publish seven listings under the approval policy; the demo publishes
 eight synthetic listings identified by `Demo:` company names.
 
 Override feeds with a nonempty JSON array of paths, relative to the working directory:
@@ -59,9 +59,10 @@ Approval requires:
 
 - A nonblank title and explicit boolean remote status; remote anywhere or in-person US/CA.
 - Explicit full-time employment.
-- Positive salary, supported currency, and explicit `annual`/`yearly` or `hourly` unit;
-  converted pay must exceed USD 100,000/year or USD 45/hour. No missing-field defaults
-  or hourly-by-value inference.
+- Positive salary and supported currency. Object salaries default to annual when `unit`
+  is omitted; explicit `annual` and `hourly` units are supported. Numeric salaries
+  still require currency and period evidence. Converted pay must exceed USD 100,000/year
+  or USD 45/hour. No hourly-by-value inference.
 - Recognized non-staffing classification: `Direct Employer`, `Consulting Agency`,
   or `Non-Staffing`. Missing/unknown classifications and staffing firms reject.
 - A nonempty description and trusted `English`/`en` label, or `French`/`fr` for CA.
