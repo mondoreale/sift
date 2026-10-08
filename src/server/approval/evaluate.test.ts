@@ -61,15 +61,15 @@ describe('explicit evidence and approval', () => {
     });
 
     it.each([
-        [100000, 'annual', false],
-        [100000.01, 'annual', true],
-        [45, 'hourly', false],
-        [46, 'hourly', true],
+        [100000, 'annual', 'rejected'],
+        [100000.01, 'annual', 'approved'],
+        [45, 'hourly', 'rejected'],
+        [46, 'hourly', 'approved'],
     ])(
         'evaluates %s %s strictly, independently of annualization',
-        async (value, unit, approved) => {
+        async (value, unit, expectedStatus) => {
             expect((await decide({ salary: { value, currency: 'USD', unit } })).status).toBe(
-                approved ? 'approved' : 'rejected',
+                expectedStatus,
             );
         },
     );
