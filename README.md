@@ -47,8 +47,7 @@ theme live in [src/app/globals.css](src/app/globals.css); component utilities li
 in [src/client/App.tsx](src/client/App.tsx) and `src/components`.
 
 Inter Tight (sans) and JetBrains Mono (mono) are bundled locally with Fontsource.
-Icons use Hugeicons' free Stroke Rounded set, with named imports from
-`@hugeicons/core-free-icons` rendered by `@hugeicons/react`. No font or icon CDN is used.
+Icons use inline SVGs. No font or icon CDN is used.
 Tailwind v4 targets Safari 16.4+, Chrome 111+, and Firefox 128+.
 
 ## Job Board
