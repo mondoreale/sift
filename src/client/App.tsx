@@ -10,7 +10,9 @@ import { useEffect, useState } from 'react';
 import { fetchJobs } from './api/jobs';
 
 type JobsState =
-    { status: 'loading' } | { status: 'ready'; response: JobListResponse } | { status: 'error' };
+    | { status: 'loading' }
+    | { status: 'ready'; response: JobListResponse; requestKey: string }
+    | { status: 'error' };
 
 const countryNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
@@ -24,7 +26,11 @@ export function App() {
     const [availableCountries, setAvailableCountries] = useState<string[]>([]);
     const pendingSearch = search.trim() !== debouncedSearch;
     const hasFilters = Boolean(search.trim() || country);
-    const displayState: JobsState = pendingSearch ? { status: 'loading' } : state;
+    const requestKey = JSON.stringify([debouncedSearch, country, sort, requestVersion]);
+    const displayState: JobsState =
+        pendingSearch || (state.status === 'ready' && state.requestKey !== requestKey)
+            ? { status: 'loading' }
+            : state;
 
     useEffect(() => {
         const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -43,7 +49,7 @@ export function App() {
         fetchJobs(controller.signal, query)
             .then((response) => {
                 if (!controller.signal.aborted) {
-                    setState({ status: 'ready', response });
+                    setState({ status: 'ready', response, requestKey });
                     setAvailableCountries(response.availableCountries);
                 }
             })
@@ -51,7 +57,7 @@ export function App() {
                 if (!controller.signal.aborted) setState({ status: 'error' });
             });
         return () => controller.abort();
-    }, [requestVersion, debouncedSearch, country, sort]);
+    }, [requestVersion, debouncedSearch, country, sort, requestKey]);
 
     function retry() {
         setState({ status: 'loading' });

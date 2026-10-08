@@ -1,5 +1,6 @@
 import { jobSchema, type JobListResponse } from '@/contracts';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { Profiler } from 'react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -164,6 +165,62 @@ describe('job board', () => {
             expect(screen.getByRole('status')).toHaveTextContent(
                 'Try a different title or country.',
             );
+        } finally {
+            unmount();
+            vi.useRealTimers();
+        }
+    });
+
+    it('never commits previous results when the debounce expires', async () => {
+        vi.useFakeTimers();
+        const job = jobSchema.parse({
+            id: 'previous-job',
+            title: 'Previous Engineer',
+            company: null,
+            description: null,
+            location: null,
+            remote: false,
+            compensation: {
+                amount: 100000,
+                currency: 'USD',
+                period: 'annual',
+                annualizedUsd: 100000,
+            },
+            postingDate: null,
+        });
+        fetchJobsMock
+            .mockResolvedValueOnce({ items: [job], total: 1, availableCountries: [] })
+            .mockReturnValueOnce(new Promise(() => {}));
+        const committedPreviousResults: boolean[] = [];
+        const { unmount } = render(
+            <Profiler
+                id="job-board"
+                onRender={() => {
+                    committedPreviousResults.push(
+                        screen.queryByRole('heading', { name: 'Previous Engineer' }) !== null,
+                    );
+                }}
+            >
+                <App />
+            </Profiler>,
+        );
+
+        try {
+            await act(async () => {});
+            expect(screen.getByRole('heading', { name: 'Previous Engineer' })).toBeInTheDocument();
+            fireEvent.change(screen.getByRole('searchbox', { name: 'Search titles' }), {
+                target: { value: 'New Engineer' },
+            });
+            committedPreviousResults.length = 0;
+
+            await act(async () => {
+                await vi.advanceTimersByTimeAsync(300);
+            });
+
+            expect(fetchJobsMock).toHaveBeenCalledTimes(2);
+            expect(committedPreviousResults.length).toBeGreaterThan(0);
+            expect(committedPreviousResults).not.toContain(true);
+            expect(screen.getByText('Loading jobs...')).toBeInTheDocument();
         } finally {
             unmount();
             vi.useRealTimers();
