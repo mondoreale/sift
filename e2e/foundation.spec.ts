@@ -1,5 +1,22 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { jobListResponseSchema } from '../src/contracts';
+
+async function expectVisibleIcons(page: Page) {
+    const icons = page.locator('header svg, main svg');
+    expect(await icons.count()).toBeGreaterThan(0);
+
+    for (const icon of await icons.all()) {
+        await expect(icon).toBeVisible();
+        await expect(icon).toHaveAttribute('aria-hidden', 'true');
+        await expect(icon).toHaveAttribute('focusable', 'false');
+        const geometry = await icon.evaluate((element) => {
+            const bounds = (element as SVGSVGElement).getBBox();
+            return { width: bounds.width, height: bounds.height };
+        });
+        expect(geometry.width).toBeGreaterThan(0);
+        expect(geometry.height).toBeGreaterThan(0);
+    }
+}
 
 test('serves a healthy same-origin Next.js API', async ({ request }) => {
     const response = await request.get('/api/health');
@@ -9,7 +26,7 @@ test('serves a healthy same-origin Next.js API', async ({ request }) => {
     });
 });
 
-test('recovers from an HTTP failure with keyboard retry', async ({ page }) => {
+test('recovers from an HTTP failure with keyboard retry', async ({ page }, testInfo) => {
     await page.route('**/api/jobs', (route) =>
         route.fulfill({
             status: 503,
@@ -20,12 +37,16 @@ test('recovers from an HTTP failure with keyboard retry', async ({ page }) => {
     await expect(
         page.getByRole('region', { name: 'Job results' }).getByRole('alert'),
     ).toContainText('Could not load jobs');
+    await expectVisibleIcons(page);
+    await page.screenshot({ path: testInfo.outputPath('error-board.png'), fullPage: true });
     await page.unroute('**/api/jobs');
     await page.route('**/api/jobs', (route) =>
         route.fulfill({ json: { items: [], total: 0, availableCountries: [] } }),
     );
     const retry = page.getByRole('button', { name: 'Retry' });
     await retry.focus();
+    await expect(retry).toHaveCSS('outline-width', '3px');
+    await expect(retry).toHaveCSS('outline-style', 'solid');
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
     await expect(page.getByText('0 jobs', { exact: true })).toBeVisible();
@@ -53,7 +74,8 @@ test('renders long job content without overflow or executable markup', async ({
                         title,
                         company: 'Example Engineering Company',
                         description:
-                            '<img src=x onerror="window.injected=true"> Build reliable systems.',
+                            '<img src=x onerror="window.injected=true"> Build reliable systems.\n' +
+                            'UnbrokenContent'.repeat(30),
                         location: { city: 'Montreal', region: 'QC', country: 'CA' },
                         remote: true,
                         compensation: {
@@ -74,8 +96,23 @@ test('renders long job content without overflow or executable markup', async ({
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
     await expect(page.getByText('Date unavailable')).toBeVisible();
     await expect(page.getByText('$65.00')).toBeVisible();
-    await expect(page.locator('.description')).toContainText('<img src=x');
-    expect(await page.locator('.description img').count()).toBe(0);
+    const results = page.getByRole('region', { name: 'Job results' });
+    await expect(results.getByText('<img src=x', { exact: false })).toBeVisible();
+    await expect(results.getByRole('listitem').locator('img')).toHaveCount(0);
+    await expectVisibleIcons(page);
+    await expect(page.locator('body')).toHaveCSS('font-family', /Inter Tight/);
+    await expect(page.getByText('$65.00')).toHaveCSS('font-family', /JetBrains Mono/);
+    await expect(page.getByText('1 job', { exact: true })).toHaveCSS(
+        'font-family',
+        /JetBrains Mono/,
+    );
+    const loadedFonts = await page.evaluate(async () => {
+        await document.fonts.ready;
+        return Array.from(document.fonts)
+            .filter((font) => font.status === 'loaded')
+            .map((font) => font.family.replaceAll('"', '').replaceAll("'", ''));
+    });
+    expect(loadedFonts).toEqual(expect.arrayContaining(['Inter Tight', 'JetBrains Mono']));
     expect(
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);
@@ -83,6 +120,49 @@ test('renders long job content without overflow or executable markup', async ({
         path: testInfo.outputPath('populated-board.png'),
         fullPage: true,
     });
+
+    for (const width of [280, 390, 640, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        const search = page.getByRole('searchbox', { name: 'Search titles' });
+        const country = page.getByRole('combobox', { name: 'Country' });
+        const sort = page.getByRole('combobox', { name: 'Sort' });
+
+        for (const control of [search, country, sort]) {
+            await expect(control).toBeVisible();
+            await expect(control).toHaveCSS('font-family', /Inter Tight/);
+            const bounds = await control.boundingBox();
+            expect(bounds?.height).toBeGreaterThanOrEqual(44);
+            expect(bounds?.x).toBeGreaterThanOrEqual(0);
+            expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+        }
+
+        const searchBounds = (await search.boundingBox())!;
+        const countryBounds = (await country.boundingBox())!;
+        const sortBounds = (await sort.boundingBox())!;
+        if (width < 640) {
+            expect(countryBounds.y).toBeGreaterThanOrEqual(searchBounds.y + searchBounds.height);
+            expect(sortBounds.y).toBeGreaterThanOrEqual(countryBounds.y + countryBounds.height);
+        } else {
+            expect(countryBounds.y).toBe(sortBounds.y);
+            expect(sortBounds.x).toBeGreaterThanOrEqual(countryBounds.x + countryBounds.width);
+            if (width < 768) {
+                expect(countryBounds.y).toBeGreaterThanOrEqual(
+                    searchBounds.y + searchBounds.height,
+                );
+            } else {
+                expect(searchBounds.y).toBe(countryBounds.y);
+                expect(countryBounds.x).toBeGreaterThanOrEqual(searchBounds.x + searchBounds.width);
+            }
+        }
+
+        expect(
+            await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        ).toBe(true);
+        await page.screenshot({
+            path: testInfo.outputPath(`responsive-${width}.png`),
+            fullPage: true,
+        });
+    }
 });
 
 test('renders the jobs returned by the real API', async ({ page }) => {
@@ -96,20 +176,112 @@ test('renders the jobs returned by the real API', async ({ page }) => {
     expect(response.ok()).toBe(true);
     const jobs = jobListResponseSchema.parse(await response.json());
     await expect(page.getByRole('heading', { name: 'Jobs', exact: true })).toBeVisible();
-    await expect(page.locator('.result-count')).toHaveText(
-        `${jobs.total} ${jobs.total === 1 ? 'job' : 'jobs'}`,
-    );
-    await expect(page.locator('.job-info h2')).toHaveText(jobs.items.map((job) => job.title));
+    await expect(
+        page.getByText(`${jobs.total} ${jobs.total === 1 ? 'job' : 'jobs'}`, { exact: true }),
+    ).toBeVisible();
+    await expect(
+        page
+            .getByRole('region', { name: 'Job results' })
+            .getByRole('listitem')
+            .getByRole('heading'),
+    ).toHaveText(jobs.items.map((job) => job.title));
     if (jobs.total === 0) {
         await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
     }
 });
 
-test('renders an empty approved dataset', async ({ page }) => {
+test('renders an empty approved dataset', async ({ page }, testInfo) => {
     await page.route('**/api/jobs', (route) =>
         route.fulfill({ json: { items: [], total: 0, availableCountries: [] } }),
     );
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
     await expect(page.getByText('0 jobs', { exact: true })).toBeVisible();
+    await expectVisibleIcons(page);
+    await page.screenshot({ path: testInfo.outputPath('empty-board.png'), fullPage: true });
+});
+
+test('keeps loading visible, respects reduced motion and shows keyboard focus', async ({
+    page,
+}, testInfo) => {
+    let releaseResponse!: () => void;
+    await page.route('**/api/jobs**', async (route) => {
+        await new Promise<void>((resolve) => {
+            releaseResponse = resolve;
+        });
+        await route.fulfill({ json: { items: [], total: 0, availableCountries: [] } });
+    });
+    await page.goto('/');
+    const results = page.getByRole('region', { name: 'Job results' });
+    const spinner = results.getByRole('status').locator('svg');
+    await expect(results).toHaveAttribute('aria-busy', 'true');
+    await expect(spinner).toHaveCSS('animation-name', 'spin');
+    await expectVisibleIcons(page);
+    await page.screenshot({ path: testInfo.outputPath('loading-board.png'), fullPage: true });
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await expect(spinner).toHaveCSS('animation-name', 'none');
+    await page.keyboard.press('Tab');
+    const search = page.getByRole('searchbox', { name: 'Search titles' });
+    await expect(search).toBeFocused();
+    await expect(search).toHaveCSS('outline-width', '3px');
+    await expect(search).toHaveCSS('outline-style', 'solid');
+    await expect(search).toHaveCSS('outline-color', 'rgb(184, 90, 22)');
+    await page.keyboard.press('Tab');
+    const country = page.getByRole('combobox', { name: 'Country' });
+    await expect(country).toBeFocused();
+    await expect(country).toHaveCSS('outline-width', '3px');
+    await page.keyboard.press('Tab');
+    const sort = page.getByRole('combobox', { name: 'Sort' });
+    await expect(sort).toBeFocused();
+    await expect(sort).toHaveCSS('outline-width', '3px');
+
+    releaseResponse();
+    await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
+    await expect(results).toHaveAttribute('aria-busy', 'false');
+});
+
+test('searches, filters, sorts and clears through the redesigned controls', async ({
+    page,
+}, testInfo) => {
+    const queries: Record<string, string>[] = [];
+    await page.route('**/api/jobs**', (route) => {
+        queries.push(Object.fromEntries(new URL(route.request().url()).searchParams));
+        return route.fulfill({
+            json: { items: [], total: 0, availableCountries: ['CA', 'US'] },
+        });
+    });
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
+
+    await page.getByRole('searchbox', { name: 'Search titles' }).fill('Engineer');
+    await expect.poll(() => queries.at(-1)).toMatchObject({ search: 'Engineer' });
+    await expect(page.getByRole('heading', { name: 'No matching jobs' })).toBeVisible();
+    await page.getByRole('combobox', { name: 'Country' }).selectOption('CA');
+    await expect.poll(() => queries.at(-1)).toMatchObject({ search: 'Engineer', country: 'CA' });
+    await page.getByRole('combobox', { name: 'Sort' }).selectOption('salary:asc');
+    await expect
+        .poll(() => queries.at(-1))
+        .toMatchObject({
+            search: 'Engineer',
+            country: 'CA',
+            sortBy: 'salary',
+            sortOrder: 'asc',
+        });
+    const clear = page.getByRole('button', { name: 'Clear filters' });
+    await expect(clear).toBeVisible();
+    await expectVisibleIcons(page);
+    await page.screenshot({
+        path: testInfo.outputPath('filtered-empty-board.png'),
+        fullPage: true,
+    });
+
+    await clear.focus();
+    await expect(clear).toHaveCSS('outline-width', '3px');
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
+    await expect(page.getByRole('searchbox', { name: 'Search titles' })).toHaveValue('');
+    await expect(page.getByRole('combobox', { name: 'Country' })).toHaveValue('');
+    await expect(page.getByRole('combobox', { name: 'Sort' })).toHaveValue('date:desc');
+    expect(queries.at(-1)).toEqual({});
 });
