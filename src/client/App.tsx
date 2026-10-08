@@ -1,5 +1,6 @@
 'use client';
 
+import { Select } from '@/components/Select';
 import { jobQuerySchema, type Job, type JobListResponse } from '@/contracts';
 import {
     AlertCircleIcon,
@@ -192,42 +193,35 @@ export function App() {
                             />
                         </span>
                     </label>
-                    <label className={labelStyle} htmlFor='country-filter'>
-                        <span>Country</span>
-                        <select
-                            className={controlStyle}
-                            id='country-filter'
-                            value={country}
-                            onChange={(event) => {
-                                setCountry(event.target.value);
-                                setState({ status: 'loading' });
-                            }}
-                        >
-                            <option value=''>All countries</option>
-                            {availableCountries.map((code) => (
-                                <option key={code} value={code}>
-                                    {countryNames.of(code)}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label className={labelStyle} htmlFor='sort-jobs'>
-                        <span>Sort</span>
-                        <select
-                            className={controlStyle}
-                            id='sort-jobs'
-                            value={sort}
-                            onChange={(event) => {
-                                setSort(event.target.value);
-                                setState({ status: 'loading' });
-                            }}
-                        >
-                            <option value='date:desc'>Newest first</option>
-                            <option value='date:asc'>Oldest first</option>
-                            <option value='salary:desc'>Salary: high to low</option>
-                            <option value='salary:asc'>Salary: low to high</option>
-                        </select>
-                    </label>
+                    <Select
+                        label='Country'
+                        value={country}
+                        onChange={(value) => {
+                            setCountry(value);
+                            setState({ status: 'loading' });
+                        }}
+                        options={[
+                            { value: '', label: 'All countries' },
+                            ...availableCountries.map((code) => ({
+                                value: code,
+                                label: countryNames.of(code) ?? code,
+                            })),
+                        ]}
+                    />
+                    <Select
+                        label='Sort'
+                        value={sort}
+                        onChange={(value) => {
+                            setSort(value);
+                            setState({ status: 'loading' });
+                        }}
+                        options={[
+                            { value: 'date:desc', label: 'Newest first' },
+                            { value: 'date:asc', label: 'Oldest first' },
+                            { value: 'salary:desc', label: 'Salary: high to low' },
+                            { value: 'salary:asc', label: 'Salary: low to high' },
+                        ]}
+                    />
                 </form>
                 <section
                     className='min-h-72 border-y border-line bg-white'
