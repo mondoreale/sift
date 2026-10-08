@@ -15,6 +15,11 @@
 }
 
 @layer base {
+    ::selection {
+        background: #18181b;
+        color: #fafaf9;
+    }
+
     html {
         font-synthesis: none;
         text-rendering: optimizeLegibility;
