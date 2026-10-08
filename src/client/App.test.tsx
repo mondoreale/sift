@@ -27,8 +27,21 @@ describe('job board', () => {
         ).toBeInTheDocument();
         expect(screen.queryByText('jobs available')).not.toBeInTheDocument();
         expect(screen.getByText('Loading jobs...')).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent('Fetching the latest open positions.');
+        expect(screen.getByRole('region', { name: 'Job results' })).toHaveAttribute(
+            'aria-busy',
+            'true',
+        );
         await act(async () => resolveRequest({ items: [], total: 0, availableCountries: [] }));
         expect(screen.getByRole('heading', { name: 'No jobs available' })).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent(
+            'Check back later for new open positions.',
+        );
+        expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument();
+        expect(screen.getByRole('region', { name: 'Job results' })).toHaveAttribute(
+            'aria-busy',
+            'false',
+        );
         expect(screen.getByText('0')).toBeInTheDocument();
         expect(screen.getByText('jobs available')).toBeInTheDocument();
     });
@@ -39,6 +52,9 @@ describe('job board', () => {
             .mockResolvedValueOnce({ items: [], total: 0, availableCountries: [] });
         render(<App />);
         expect(await screen.findByRole('alert')).toHaveTextContent('Could not load jobs');
+        expect(screen.getByRole('alert')).toHaveTextContent(
+            'Something went wrong. Please try again.',
+        );
         await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }));
         expect(
             await screen.findByRole('heading', { name: 'No jobs available' }),
@@ -102,6 +118,9 @@ describe('job board', () => {
                 target: { value: 'Engineer' },
             });
             expect(screen.queryByText('jobs available')).not.toBeInTheDocument();
+            expect(screen.getByRole('status')).toHaveTextContent(
+                'Finding jobs that match your filters.',
+            );
             await act(async () => {
                 await vi.advanceTimersByTimeAsync(299);
             });
@@ -114,6 +133,9 @@ describe('job board', () => {
                 search: 'Engineer',
             });
             expect(screen.getByRole('heading', { name: 'No matching jobs' })).toBeInTheDocument();
+            expect(screen.getByRole('status')).toHaveTextContent(
+                'Try a different title or country.',
+            );
         } finally {
             unmount();
             vi.useRealTimers();

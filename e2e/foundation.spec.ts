@@ -209,7 +209,7 @@ test('renders an empty approved dataset', async ({ page }, testInfo) => {
     await page.screenshot({ path: testInfo.outputPath('empty-board.png'), fullPage: true });
 });
 
-test('keeps loading visible, respects reduced motion and shows keyboard focus', async ({
+test('keeps loading visible without motion and shows keyboard focus', async ({
     page,
 }, testInfo) => {
     let releaseResponse!: () => void;
@@ -221,14 +221,19 @@ test('keeps loading visible, respects reduced motion and shows keyboard focus', 
     });
     await page.goto('/');
     const results = page.getByRole('region', { name: 'Job results' });
-    const spinner = results.getByRole('status').locator('svg');
+    const status = results.getByRole('status');
     await expect(results).toHaveAttribute('aria-busy', 'true');
-    await expect(spinner).toHaveCSS('animation-name', 'spin');
+    await expect(status).toContainText('Loading jobs...');
+    await expect(status).toContainText('Fetching the latest open positions.');
+    await expect(status.locator('svg')).toHaveCount(0);
+    await expect(status).toHaveCSS('padding-top', '80px');
+    await expect(status).toHaveCSS('text-align', 'center');
     await expectVisibleIcons(page);
     await page.screenshot({ path: testInfo.outputPath('loading-board.png'), fullPage: true });
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await expect(spinner).toHaveCSS('animation-name', 'none');
+    await expect(status).toBeVisible();
+    await expect(status).toHaveCSS('animation-name', 'none');
     await page.keyboard.press('Tab');
     const search = page.getByRole('searchbox', { name: 'Search titles' });
     await expect(search).toBeFocused();

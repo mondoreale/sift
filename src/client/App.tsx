@@ -2,16 +2,9 @@
 
 import { Header } from '@/components/Header';
 import { Select } from '@/components/Select';
+import { Status } from '@/components/Status';
 import { TextField } from '@/components/TextField';
 import { jobQuerySchema, type Job, type JobListResponse } from '@/contracts';
-import {
-    AlertCircleIcon,
-    Cancel01Icon,
-    InboxIcon,
-    Loading03Icon,
-    RefreshIcon,
-} from '@hugeicons/core-free-icons';
-import { HugeiconsIcon } from '@hugeicons/react';
 import { useEffect, useState } from 'react';
 import { fetchJobs } from './api/jobs';
 
@@ -23,11 +16,6 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
     timeZone: 'UTC',
 });
-
-const buttonStyle =
-    'inline-flex min-h-11 max-w-full cursor-pointer items-center justify-center gap-2 rounded border border-accent bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus';
-const statusStyle =
-    'status-grid flex min-h-72 flex-col items-center justify-center gap-4 px-5 py-10 text-center';
 
 function JobRow({ job }: { job: Job }) {
     const country = job.location?.country;
@@ -140,7 +128,7 @@ export function App() {
                     }
                 />
                 <form
-                    className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-[minmax(0,1fr)_minmax(0,180px)_minmax(0,210px)]"
+                    className="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-[minmax(0,1fr)_minmax(0,180px)_minmax(0,210px)]"
                     onSubmit={(event) => event.preventDefault()}
                     aria-label="Job search"
                 >
@@ -188,75 +176,44 @@ export function App() {
                     />
                 </form>
                 <section
-                    className="min-h-72 border-y border-line bg-white"
+                    className="mt-10 min-h-72 bg-white border-t border-zinc-900"
                     aria-label="Job results"
                     aria-busy={displayState.status === 'loading'}
                 >
                     {displayState.status === 'loading' && (
-                        <div className={statusStyle} role="status">
-                            <HugeiconsIcon
-                                icon={Loading03Icon}
-                                className="shrink-0 animate-spin text-muted motion-reduce:animate-none"
-                                size={28}
-                                strokeWidth={1.5}
-                                aria-hidden="true"
-                                focusable="false"
-                            />
-                            <p className="text-[15px] text-muted">Loading jobs...</p>
-                        </div>
+                        <Status
+                            title="Loading jobs..."
+                            titleAs="p"
+                            description={
+                                hasFilters
+                                    ? 'Finding jobs that match your filters.'
+                                    : 'Fetching the latest open positions.'
+                            }
+                        />
                     )}
                     {displayState.status === 'error' && (
-                        <div className={statusStyle} role="alert">
-                            <HugeiconsIcon
-                                icon={AlertCircleIcon}
-                                className="shrink-0 text-danger"
-                                size={28}
-                                strokeWidth={1.5}
-                                aria-hidden="true"
-                                focusable="false"
-                            />
-                            <h2 className="text-lg font-medium">Could not load jobs</h2>
-                            <button className={buttonStyle} onClick={retry}>
-                                <HugeiconsIcon
-                                    icon={RefreshIcon}
-                                    className="shrink-0"
-                                    size={18}
-                                    strokeWidth={1.5}
-                                    aria-hidden="true"
-                                    focusable="false"
-                                />
-                                Retry
-                            </button>
-                        </div>
+                        <Status
+                            role="alert"
+                            title="Could not load jobs"
+                            description="Something went wrong. Please try again."
+                            action={{ label: 'Retry', onClick: retry }}
+                        />
                     )}
                     {displayState.status === 'ready' &&
                         (displayState.response.total === 0 ? (
-                            <div className={statusStyle} role="status">
-                                <HugeiconsIcon
-                                    icon={InboxIcon}
-                                    className="shrink-0 text-muted"
-                                    size={30}
-                                    strokeWidth={1.5}
-                                    aria-hidden="true"
-                                    focusable="false"
-                                />
-                                <h2 className="text-lg font-medium">
-                                    {hasFilters ? 'No matching jobs' : 'No jobs available'}
-                                </h2>
-                                {hasFilters && (
-                                    <button className={buttonStyle} onClick={clearFilters}>
-                                        <HugeiconsIcon
-                                            icon={Cancel01Icon}
-                                            className="shrink-0"
-                                            size={18}
-                                            strokeWidth={1.5}
-                                            aria-hidden="true"
-                                            focusable="false"
-                                        />
-                                        Clear filters
-                                    </button>
-                                )}
-                            </div>
+                            <Status
+                                title={hasFilters ? 'No matching jobs' : 'No jobs available'}
+                                description={
+                                    hasFilters
+                                        ? 'Try a different title or country.'
+                                        : 'Check back later for new open positions.'
+                                }
+                                action={
+                                    hasFilters
+                                        ? { label: 'Clear filters', onClick: clearFilters }
+                                        : undefined
+                                }
+                            />
                         ) : (
                             <ul>
                                 {displayState.response.items.map((job) => (
