@@ -22,10 +22,15 @@ describe('job board', () => {
         );
         render(<App />);
         expect(screen.getByText('Job board')).toBeInTheDocument();
+        expect(
+            screen.getByRole('heading', { level: 1, name: 'Open positions' }),
+        ).toBeInTheDocument();
+        expect(screen.queryByText('jobs available')).not.toBeInTheDocument();
         expect(screen.getByText('Loading jobs...')).toBeInTheDocument();
         await act(async () => resolveRequest({ items: [], total: 0, availableCountries: [] }));
         expect(screen.getByRole('heading', { name: 'No jobs available' })).toBeInTheDocument();
-        expect(screen.getByText('0 jobs')).toBeInTheDocument();
+        expect(screen.getByText('0')).toBeInTheDocument();
+        expect(screen.getByText('jobs available')).toBeInTheDocument();
     });
 
     it('retries a failed request and recovers', async () => {
@@ -66,6 +71,8 @@ describe('job board', () => {
         expect(
             await screen.findByRole('heading', { name: 'Backend Engineer' }),
         ).toBeInTheDocument();
+        expect(screen.getByText('1')).toBeInTheDocument();
+        expect(screen.getByText('job available')).toBeInTheDocument();
         expect(screen.getByText('Remote')).toBeInTheDocument();
         expect(screen.getByText('Date unavailable')).toBeInTheDocument();
         expect(screen.getByText('$65.00')).toBeInTheDocument();
@@ -94,7 +101,7 @@ describe('job board', () => {
             fireEvent.change(screen.getByRole('searchbox', { name: 'Search titles' }), {
                 target: { value: 'Engineer' },
             });
-            expect(screen.queryByText('0 jobs')).not.toBeInTheDocument();
+            expect(screen.queryByText('jobs available')).not.toBeInTheDocument();
             await act(async () => {
                 await vi.advanceTimersByTimeAsync(299);
             });

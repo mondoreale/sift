@@ -49,7 +49,7 @@ test('recovers from an HTTP failure with keyboard retry', async ({ page }, testI
     await expect(retry).toHaveCSS('outline-style', 'solid');
     await page.keyboard.press('Enter');
     await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
-    await expect(page.getByText('0 jobs', { exact: true })).toBeVisible();
+    await expect(page.locator('header > p')).toHaveText(/0\s*jobs available/);
 });
 
 test('rejects a malformed API response', async ({ page }) => {
@@ -102,7 +102,7 @@ test('renders long job content without overflow or executable markup', async ({
     await expectVisibleIcons(page);
     await expect(page.locator('body')).toHaveCSS('font-family', /Inter Tight/);
     await expect(page.getByText('$65.00')).toHaveCSS('font-family', /JetBrains Mono/);
-    await expect(page.getByText('1 job', { exact: true })).toHaveCSS(
+    await expect(page.getByText('job available', { exact: true })).toHaveCSS(
         'font-family',
         /JetBrains Mono/,
     );
@@ -123,6 +123,14 @@ test('renders long job content without overflow or executable markup', async ({
 
     for (const width of [280, 390, 640, 768, 1440]) {
         await page.setViewportSize({ width, height: 900 });
+        const headingBounds = (await page
+            .getByRole('heading', { name: 'Open positions' })
+            .boundingBox())!;
+        const countBounds = (await page.locator('header > p').boundingBox())!;
+        expect(
+            headingBounds.x + headingBounds.width <= countBounds.x ||
+                headingBounds.y + headingBounds.height <= countBounds.y,
+        ).toBe(true);
         const search = page.getByRole('searchbox', { name: 'Search titles' });
         const country = page.getByRole('combobox', { name: 'Country' });
         const sort = page.getByRole('combobox', { name: 'Sort' });
@@ -175,10 +183,10 @@ test('renders the jobs returned by the real API', async ({ page }) => {
     const response = await responsePromise;
     expect(response.ok()).toBe(true);
     const jobs = jobListResponseSchema.parse(await response.json());
-    await expect(page.getByRole('heading', { name: 'Jobs', exact: true })).toBeVisible();
-    await expect(
-        page.getByText(`${jobs.total} ${jobs.total === 1 ? 'job' : 'jobs'}`, { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Open positions', exact: true })).toBeVisible();
+    await expect(page.locator('header > p')).toHaveText(
+        new RegExp(`${jobs.total}\\s*${jobs.total === 1 ? 'job' : 'jobs'} available`),
+    );
     await expect(
         page
             .getByRole('region', { name: 'Job results' })
@@ -196,7 +204,7 @@ test('renders an empty approved dataset', async ({ page }, testInfo) => {
     );
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'No jobs available' })).toBeVisible();
-    await expect(page.getByText('0 jobs', { exact: true })).toBeVisible();
+    await expect(page.locator('header > p')).toHaveText(/0\s*jobs available/);
     await expectVisibleIcons(page);
     await page.screenshot({ path: testInfo.outputPath('empty-board.png'), fullPage: true });
 });

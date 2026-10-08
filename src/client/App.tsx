@@ -1,11 +1,11 @@
 'use client';
 
+import { Header } from '@/components/Header';
 import { Select } from '@/components/Select';
 import { TextField } from '@/components/TextField';
 import { jobQuerySchema, type Job, type JobListResponse } from '@/contracts';
 import {
     AlertCircleIcon,
-    Briefcase01Icon,
     Cancel01Icon,
     InboxIcon,
     Loading03Icon,
@@ -133,34 +133,12 @@ export function App() {
 
     return (
         <>
-            <header className="border-b border-line bg-white">
-                <div className="mx-auto flex min-h-16 max-w-280 items-center px-4 sm:px-8">
-                    <div className="flex items-center gap-2.5 text-xl font-semibold">
-                        <HugeiconsIcon
-                            icon={Briefcase01Icon}
-                            className="shrink-0 text-accent"
-                            size={24}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                            focusable="false"
-                        />
-                        <span>Job board</span>
-                    </div>
-                </div>
-            </header>
-            <main className="mx-auto max-w-280 px-4 py-7 sm:px-8 sm:py-9">
-                <div className="mb-6 flex items-end justify-between gap-4">
-                    <div>
-                        <p className="mb-1 text-[13px] text-muted">Approved listings</p>
-                        <h1 className="text-[28px] leading-tight font-semibold">Jobs</h1>
-                    </div>
-                    {displayState.status === 'ready' && (
-                        <span className="pb-1 font-mono text-[13px] whitespace-nowrap text-muted tabular-nums">
-                            {displayState.response.total}{' '}
-                            {displayState.response.total === 1 ? 'job' : 'jobs'}
-                        </span>
-                    )}
-                </div>
+            <main className="mx-auto max-w-3xl px-6 pb-24 pt-16 sm:pt-24">
+                <Header
+                    total={
+                        displayState.status === 'ready' ? displayState.response.total : undefined
+                    }
+                />
                 <form
                     className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-[minmax(0,1fr)_minmax(0,180px)_minmax(0,210px)]"
                     onSubmit={(event) => event.preventDefault()}
