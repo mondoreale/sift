@@ -113,6 +113,43 @@ describe('job board', () => {
         }
     });
 
+    it('clears only the search query with the clear button', async () => {
+        fetchJobsMock.mockResolvedValue({
+            items: [],
+            total: 0,
+            availableCountries: ['CA'],
+        });
+        render(<App />);
+        await screen.findByRole('option', { name: 'Canada' });
+        const user = userEvent.setup();
+        const searchInput = screen.getByRole('searchbox', { name: 'Search titles' });
+
+        expect(searchInput).toHaveAttribute('placeholder', 'Job title');
+        expect(searchInput).toHaveClass('h-11');
+        expect(screen.getByRole('combobox', { name: 'Country' })).toHaveClass('h-11');
+        expect(screen.getByRole('combobox', { name: 'Sort' })).toHaveClass('h-11');
+        expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+        await user.selectOptions(screen.getByRole('combobox', { name: 'Country' }), 'CA');
+        await user.selectOptions(screen.getByRole('combobox', { name: 'Sort' }), 'salary:asc');
+        await user.type(searchInput, 'Engineer');
+        await waitFor(() =>
+            expect(fetchJobsMock.mock.lastCall?.[1]).toMatchObject({ search: 'Engineer' }),
+        );
+        await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+        expect(searchInput).toHaveValue('');
+        expect(searchInput).toHaveFocus();
+        expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+        await waitFor(() =>
+            expect(fetchJobsMock.mock.lastCall?.[1]).toMatchObject({
+                search: '',
+                country: 'CA',
+                sortBy: 'salary',
+                sortOrder: 'asc',
+            }),
+        );
+    });
+
     it('updates country and sort immediately, retains facets and clears filters', async () => {
         fetchJobsMock.mockResolvedValue({
             items: [],

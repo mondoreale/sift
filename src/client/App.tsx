@@ -1,6 +1,7 @@
 'use client';
 
 import { Select } from '@/components/Select';
+import { TextField } from '@/components/TextField';
 import { jobQuerySchema, type Job, type JobListResponse } from '@/contracts';
 import {
     AlertCircleIcon,
@@ -9,7 +10,6 @@ import {
     InboxIcon,
     Loading03Icon,
     RefreshIcon,
-    Search01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useEffect, useState } from 'react';
@@ -24,9 +24,6 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
     timeZone: 'UTC',
 });
 
-const labelStyle = 'flex min-w-0 flex-col gap-2 text-[13px] font-medium text-muted';
-const controlStyle =
-    'h-11 w-full min-w-0 rounded border border-line bg-white px-3 py-2 font-sans text-[15px] text-ink focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-focus';
 const buttonStyle =
     'inline-flex min-h-11 max-w-full cursor-pointer items-center justify-center gap-2 rounded border border-accent bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-focus';
 const statusStyle =
@@ -169,30 +166,19 @@ export function App() {
                     onSubmit={(event) => event.preventDefault()}
                     aria-label="Job search"
                 >
-                    <label
-                        className={`${labelStyle} sm:col-span-2 md:col-span-1`}
-                        htmlFor="title-search"
-                    >
-                        <span>Search titles</span>
-                        <span className="relative flex items-center">
-                            <HugeiconsIcon
-                                icon={Search01Icon}
-                                className="pointer-events-none absolute left-3 shrink-0"
-                                size={18}
-                                strokeWidth={1.5}
-                                aria-hidden="true"
-                                focusable="false"
-                            />
-                            <input
-                                className={`${controlStyle} pl-10`}
-                                id="title-search"
-                                type="search"
-                                value={search}
-                                maxLength={200}
-                                onChange={(event) => setSearch(event.target.value)}
-                            />
-                        </span>
-                    </label>
+                    <div className="min-w-0 sm:col-span-2 md:col-span-1">
+                        <TextField
+                            label="Search"
+                            id="title-search"
+                            type="search"
+                            aria-label="Search titles"
+                            placeholder="Job title"
+                            value={search}
+                            maxLength={200}
+                            onChange={setSearch}
+                            clearable
+                        />
+                    </div>
                     <Select
                         label="Country"
                         value={country}
