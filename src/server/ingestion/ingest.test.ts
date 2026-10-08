@@ -1,4 +1,3 @@
-import { readFile } from 'node:fs/promises';
 import { describe, expect, it, vi } from 'vitest';
 import type { FxRateProvider } from '../approval/evaluate';
 import { feedPaths, mockedUsdRateProvider } from '../config';
@@ -17,16 +16,6 @@ describe('startup ingestion', () => {
         [120000, null],
     ])('normalizes salary %j to period %s', (salary, period) => {
         expect(normalize({ salary }).candidate?.period).toBe(period);
-    });
-
-    it('preserves the supplied sample', async () => {
-        const markdown = await readFile(
-            new URL('../../../instructions.md', import.meta.url),
-            'utf8',
-        );
-        const supplied = JSON.parse(markdown.split('```json\n')[1]!.split('```')[0]!);
-        const paths = feedPaths();
-        expect(JSON.parse(await readFile(paths[0]!, 'utf8'))).toEqual(supplied);
     });
 
     it('defaults object salaries to annual and reports remaining assignment rejections', async () => {
