@@ -95,13 +95,13 @@ test('renders long job content without overflow or executable markup', async ({
     await page.goto('/');
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
     await expect(page.getByText('Date unavailable')).toBeVisible();
-    await expect(page.getByText('$65.00')).toBeVisible();
+    await expect(page.getByText('$65 / hr')).toBeVisible();
     const results = page.getByRole('region', { name: 'Job results' });
     await expect(results.getByText('<img src=x', { exact: false })).toBeVisible();
     await expect(results.getByRole('listitem').locator('img')).toHaveCount(0);
     await expectVisibleIcons(page);
     await expect(page.locator('body')).toHaveCSS('font-family', /Inter Tight/);
-    await expect(page.getByText('$65.00')).toHaveCSS('font-family', /JetBrains Mono/);
+    await expect(page.getByText('$65 / hr')).toHaveCSS('font-family', /JetBrains Mono/);
     await expect(page.getByText('job available', { exact: true })).toHaveCSS(
         'font-family',
         /JetBrains Mono/,

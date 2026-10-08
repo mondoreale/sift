@@ -123,7 +123,7 @@ export function App() {
                     />
                 </form>
                 <section
-                    className="mt-10 min-h-72 bg-white border-t border-zinc-900"
+                    className="mt-4 min-h-72"
                     aria-label="Job results"
                     aria-busy={displayState.status === 'loading'}
                 >

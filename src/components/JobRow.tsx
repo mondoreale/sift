@@ -6,6 +6,18 @@ const dateFormat = new Intl.DateTimeFormat('en-US', {
     timeZone: 'UTC',
 });
 
+function formatSalary({ compensation }: Job) {
+    const hourly = compensation.period === 'hourly';
+    const amount = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: compensation.currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: hourly ? 2 : 0,
+    }).format(hourly ? compensation.amount : Math.round(compensation.amount / 1000));
+
+    return hourly ? `${amount} / hr` : `${amount}k / yr`;
+}
+
 export function JobRow({ job }: { job: Job }) {
     const country = job.location?.country;
     const location = [
@@ -15,41 +27,45 @@ export function JobRow({ job }: { job: Job }) {
     ]
         .filter(Boolean)
         .join(', ');
-    const compensation = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: job.compensation.currency,
-        maximumFractionDigits: 2,
-    }).format(job.compensation.amount);
 
     return (
-        <li className="grid grid-cols-1 gap-4 border-b border-line px-4 py-6 last:border-b-0 md:grid-cols-[minmax(0,1fr)_minmax(180px,240px)] md:gap-6 md:px-6">
+        <li className="group grid gap-x-10 gap-y-3 border-t border-line py-7 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_auto]">
             <div className="min-w-0 wrap-anywhere">
-                <h2 className="text-lg leading-snug font-semibold">{job.title}</h2>
-                <p className="mt-1 text-[15px]">{job.company ?? 'Company unavailable'}</p>
-                <p className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-muted">
-                    {job.remote && <span className="font-medium text-accent">Remote</span>}
-                    {location || (job.remote ? null : 'Location unavailable')}
-                </p>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <h2 className="text-[19px] leading-snug font-medium transition-colors group-hover:text-muted motion-reduce:transition-none">
+                        {job.title}
+                    </h2>
+                    <span className="text-[15px] text-muted">
+                        {job.company ?? 'Company unavailable'}
+                    </span>
+                </div>
                 {job.description && (
-                    <p className="mt-3 text-sm leading-relaxed whitespace-pre-wrap text-muted">
+                    <p className="mt-2 line-clamp-2 max-w-xl text-[14.5px] leading-relaxed text-muted">
                         {job.description}
                     </p>
                 )}
-            </div>
-            <div className="min-w-0 wrap-anywhere md:text-right">
-                <p className="font-mono text-[15px] leading-6 font-medium tabular-nums">
-                    {compensation}
-                    <span className="font-sans text-[13px] font-normal text-muted">
-                        {' '}
-                        / {job.compensation.period === 'hourly' ? 'hour' : 'year'}
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11.5px] text-muted">
+                    <span>{location || 'Location unavailable'}</span>
+                    <span aria-hidden="true" className="h-3 w-px bg-line" />
+                    <span className="inline-flex items-center gap-1.5">
+                        <span
+                            aria-hidden="true"
+                            className={`h-1.5 w-1.5 shrink-0 rounded-full ${job.remote ? 'bg-accent' : 'bg-ink'}`}
+                        />
+                        {job.remote ? 'Remote' : 'On-site'}
                     </span>
-                </p>
+                </div>
+            </div>
+            <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-6 gap-y-2 font-mono sm:max-w-60 sm:flex-col sm:items-end sm:justify-start sm:text-right">
+                <span className="wrap-anywhere text-[13px] text-ink tabular-nums">
+                    {formatSalary(job)}
+                </span>
                 {job.postingDate ? (
-                    <time className="mt-2 block text-[13px] text-muted" dateTime={job.postingDate}>
+                    <time className="text-[11.5px] text-muted" dateTime={job.postingDate}>
                         {dateFormat.format(new Date(`${job.postingDate}T00:00:00Z`))}
                     </time>
                 ) : (
-                    <span className="mt-2 block text-[13px] text-muted">Date unavailable</span>
+                    <span className="text-[11.5px] text-muted">Date unavailable</span>
                 )}
             </div>
         </li>

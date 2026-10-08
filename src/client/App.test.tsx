@@ -91,9 +91,37 @@ describe('job board', () => {
         expect(screen.getByText('job available')).toBeInTheDocument();
         expect(screen.getByText('Remote')).toBeInTheDocument();
         expect(screen.getByText('Date unavailable')).toBeInTheDocument();
-        expect(screen.getByText('$65.00')).toBeInTheDocument();
+        expect(screen.getByText('$65 / hr')).toBeInTheDocument();
+        expect(screen.getByText('Location unavailable')).toBeInTheDocument();
         expect(screen.getByText('<script>alert("unsafe")</script>')).toBeInTheDocument();
         expect(container.querySelector('script')).toBeNull();
+    });
+
+    it('renders compact annual pay, location, on-site status, and a semantic date', async () => {
+        const job = jobSchema.parse({
+            id: 'annual-job',
+            title: 'Platform Engineer',
+            company: null,
+            description: null,
+            location: { city: 'Montreal', region: 'QC', country: 'CA' },
+            remote: false,
+            compensation: {
+                amount: 150500,
+                currency: 'CAD',
+                period: 'annual',
+                annualizedUsd: 110000,
+            },
+            postingDate: '2026-10-09',
+        });
+        fetchJobsMock.mockResolvedValue({ items: [job], total: 1, availableCountries: ['CA'] });
+        render(<App />);
+
+        await screen.findByRole('heading', { name: 'Platform Engineer' });
+        expect(screen.getByText('CA$151k / yr')).toBeInTheDocument();
+        expect(screen.getByText('Montreal, QC, Canada')).toBeInTheDocument();
+        expect(screen.getByText('On-site')).toBeInTheDocument();
+        expect(screen.getByText('Company unavailable')).toBeInTheDocument();
+        expect(screen.getByText('Oct 9, 2026')).toHaveAttribute('dateTime', '2026-10-09');
     });
 
     it('cancels the request on unmount', () => {
