@@ -48,34 +48,34 @@ function JobRow({ job }: { job: Job }) {
     }).format(job.compensation.amount);
 
     return (
-        <li className='grid grid-cols-1 gap-4 border-b border-line px-4 py-6 last:border-b-0 md:grid-cols-[minmax(0,1fr)_minmax(180px,240px)] md:gap-6 md:px-6'>
-            <div className='min-w-0 wrap-anywhere'>
-                <h2 className='text-lg leading-snug font-semibold'>{job.title}</h2>
-                <p className='mt-1 text-[15px]'>{job.company ?? 'Company unavailable'}</p>
-                <p className='mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-muted'>
-                    {job.remote && <span className='font-medium text-accent'>Remote</span>}
+        <li className="grid grid-cols-1 gap-4 border-b border-line px-4 py-6 last:border-b-0 md:grid-cols-[minmax(0,1fr)_minmax(180px,240px)] md:gap-6 md:px-6">
+            <div className="min-w-0 wrap-anywhere">
+                <h2 className="text-lg leading-snug font-semibold">{job.title}</h2>
+                <p className="mt-1 text-[15px]">{job.company ?? 'Company unavailable'}</p>
+                <p className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-muted">
+                    {job.remote && <span className="font-medium text-accent">Remote</span>}
                     {location || (job.remote ? null : 'Location unavailable')}
                 </p>
                 {job.description && (
-                    <p className='mt-3 text-sm leading-relaxed whitespace-pre-wrap text-muted'>
+                    <p className="mt-3 text-sm leading-relaxed whitespace-pre-wrap text-muted">
                         {job.description}
                     </p>
                 )}
             </div>
-            <div className='min-w-0 wrap-anywhere md:text-right'>
-                <p className='font-mono text-[15px] leading-6 font-medium tabular-nums'>
+            <div className="min-w-0 wrap-anywhere md:text-right">
+                <p className="font-mono text-[15px] leading-6 font-medium tabular-nums">
                     {compensation}
-                    <span className='font-sans text-[13px] font-normal text-muted'>
+                    <span className="font-sans text-[13px] font-normal text-muted">
                         {' '}
                         / {job.compensation.period === 'hourly' ? 'hour' : 'year'}
                     </span>
                 </p>
                 {job.postingDate ? (
-                    <time className='mt-2 block text-[13px] text-muted' dateTime={job.postingDate}>
+                    <time className="mt-2 block text-[13px] text-muted" dateTime={job.postingDate}>
                         {dateFormat.format(new Date(`${job.postingDate}T00:00:00Z`))}
                     </time>
                 ) : (
-                    <span className='mt-2 block text-[13px] text-muted'>Date unavailable</span>
+                    <span className="mt-2 block text-[13px] text-muted">Date unavailable</span>
                 )}
             </div>
         </li>
@@ -136,57 +136,57 @@ export function App() {
 
     return (
         <>
-            <header className='border-b border-line bg-white'>
-                <div className='mx-auto flex min-h-16 max-w-280 items-center px-4 sm:px-8'>
-                    <div className='flex items-center gap-2.5 text-xl font-semibold'>
+            <header className="border-b border-line bg-white">
+                <div className="mx-auto flex min-h-16 max-w-280 items-center px-4 sm:px-8">
+                    <div className="flex items-center gap-2.5 text-xl font-semibold">
                         <HugeiconsIcon
                             icon={Briefcase01Icon}
-                            className='shrink-0 text-accent'
+                            className="shrink-0 text-accent"
                             size={24}
                             strokeWidth={1.5}
-                            aria-hidden='true'
-                            focusable='false'
+                            aria-hidden="true"
+                            focusable="false"
                         />
                         <span>Job board</span>
                     </div>
                 </div>
             </header>
-            <main className='mx-auto max-w-280 px-4 py-7 sm:px-8 sm:py-9'>
-                <div className='mb-6 flex items-end justify-between gap-4'>
+            <main className="mx-auto max-w-280 px-4 py-7 sm:px-8 sm:py-9">
+                <div className="mb-6 flex items-end justify-between gap-4">
                     <div>
-                        <p className='mb-1 text-[13px] text-muted'>Approved listings</p>
-                        <h1 className='text-[28px] leading-tight font-semibold'>Jobs</h1>
+                        <p className="mb-1 text-[13px] text-muted">Approved listings</p>
+                        <h1 className="text-[28px] leading-tight font-semibold">Jobs</h1>
                     </div>
                     {displayState.status === 'ready' && (
-                        <span className='pb-1 font-mono text-[13px] whitespace-nowrap text-muted tabular-nums'>
+                        <span className="pb-1 font-mono text-[13px] whitespace-nowrap text-muted tabular-nums">
                             {displayState.response.total}{' '}
                             {displayState.response.total === 1 ? 'job' : 'jobs'}
                         </span>
                     )}
                 </div>
                 <form
-                    className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-[minmax(0,1fr)_minmax(0,180px)_minmax(0,210px)]'
+                    className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-[minmax(0,1fr)_minmax(0,180px)_minmax(0,210px)]"
                     onSubmit={(event) => event.preventDefault()}
-                    aria-label='Job search'
+                    aria-label="Job search"
                 >
                     <label
                         className={`${labelStyle} sm:col-span-2 md:col-span-1`}
-                        htmlFor='title-search'
+                        htmlFor="title-search"
                     >
                         <span>Search titles</span>
-                        <span className='relative flex items-center'>
+                        <span className="relative flex items-center">
                             <HugeiconsIcon
                                 icon={Search01Icon}
-                                className='pointer-events-none absolute left-3 shrink-0'
+                                className="pointer-events-none absolute left-3 shrink-0"
                                 size={18}
                                 strokeWidth={1.5}
-                                aria-hidden='true'
-                                focusable='false'
+                                aria-hidden="true"
+                                focusable="false"
                             />
                             <input
                                 className={`${controlStyle} pl-10`}
-                                id='title-search'
-                                type='search'
+                                id="title-search"
+                                type="search"
                                 value={search}
                                 maxLength={200}
                                 onChange={(event) => setSearch(event.target.value)}
@@ -194,7 +194,7 @@ export function App() {
                         </span>
                     </label>
                     <Select
-                        label='Country'
+                        label="Country"
                         value={country}
                         onChange={(value) => {
                             setCountry(value);
@@ -209,7 +209,7 @@ export function App() {
                         ]}
                     />
                     <Select
-                        label='Sort'
+                        label="Sort"
                         value={sort}
                         onChange={(value) => {
                             setSort(value);
@@ -224,42 +224,42 @@ export function App() {
                     />
                 </form>
                 <section
-                    className='min-h-72 border-y border-line bg-white'
-                    aria-label='Job results'
+                    className="min-h-72 border-y border-line bg-white"
+                    aria-label="Job results"
                     aria-busy={displayState.status === 'loading'}
                 >
                     {displayState.status === 'loading' && (
-                        <div className={statusStyle} role='status'>
+                        <div className={statusStyle} role="status">
                             <HugeiconsIcon
                                 icon={Loading03Icon}
-                                className='shrink-0 animate-spin text-muted motion-reduce:animate-none'
+                                className="shrink-0 animate-spin text-muted motion-reduce:animate-none"
                                 size={28}
                                 strokeWidth={1.5}
-                                aria-hidden='true'
-                                focusable='false'
+                                aria-hidden="true"
+                                focusable="false"
                             />
-                            <p className='text-[15px] text-muted'>Loading jobs...</p>
+                            <p className="text-[15px] text-muted">Loading jobs...</p>
                         </div>
                     )}
                     {displayState.status === 'error' && (
-                        <div className={statusStyle} role='alert'>
+                        <div className={statusStyle} role="alert">
                             <HugeiconsIcon
                                 icon={AlertCircleIcon}
-                                className='shrink-0 text-danger'
+                                className="shrink-0 text-danger"
                                 size={28}
                                 strokeWidth={1.5}
-                                aria-hidden='true'
-                                focusable='false'
+                                aria-hidden="true"
+                                focusable="false"
                             />
-                            <h2 className='text-lg font-medium'>Could not load jobs</h2>
+                            <h2 className="text-lg font-medium">Could not load jobs</h2>
                             <button className={buttonStyle} onClick={retry}>
                                 <HugeiconsIcon
                                     icon={RefreshIcon}
-                                    className='shrink-0'
+                                    className="shrink-0"
                                     size={18}
                                     strokeWidth={1.5}
-                                    aria-hidden='true'
-                                    focusable='false'
+                                    aria-hidden="true"
+                                    focusable="false"
                                 />
                                 Retry
                             </button>
@@ -267,27 +267,27 @@ export function App() {
                     )}
                     {displayState.status === 'ready' &&
                         (displayState.response.total === 0 ? (
-                            <div className={statusStyle} role='status'>
+                            <div className={statusStyle} role="status">
                                 <HugeiconsIcon
                                     icon={InboxIcon}
-                                    className='shrink-0 text-muted'
+                                    className="shrink-0 text-muted"
                                     size={30}
                                     strokeWidth={1.5}
-                                    aria-hidden='true'
-                                    focusable='false'
+                                    aria-hidden="true"
+                                    focusable="false"
                                 />
-                                <h2 className='text-lg font-medium'>
+                                <h2 className="text-lg font-medium">
                                     {hasFilters ? 'No matching jobs' : 'No jobs available'}
                                 </h2>
                                 {hasFilters && (
                                     <button className={buttonStyle} onClick={clearFilters}>
                                         <HugeiconsIcon
                                             icon={Cancel01Icon}
-                                            className='shrink-0'
+                                            className="shrink-0"
                                             size={18}
                                             strokeWidth={1.5}
-                                            aria-hidden='true'
-                                            focusable='false'
+                                            aria-hidden="true"
+                                            focusable="false"
                                         />
                                         Clear filters
                                     </button>
