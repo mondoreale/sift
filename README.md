@@ -5,7 +5,7 @@ country filtering, and salary/date sorting. Frontend and API share one port.
 
 ## Run
 
-Use Node 22 and pnpm 10.32.1.
+Use Node 22.12+ (Node 22 only) and pnpm 10.32.1.
 
 ```sh
 pnpm install
@@ -35,6 +35,7 @@ Use `pnpm run format` to apply the Prettier rules.
 
 - `src/app`: pages, layout, and API routes.
 - `src/client`: interactive board and HTTP requests.
+- `src/components`: reusable controls, header, job rows, and result states.
 - `src/contracts`: shared Zod schemas and types.
 - `src/server`: normalization, approval, ingestion, and in-memory storage.
 - `fixtures`: original assignment data and synthetic demo listings.
@@ -43,12 +44,22 @@ Use `pnpm run format` to apply the Prettier rules.
 
 Tailwind CSS v4 runs through `@tailwindcss/postcss`. The global entry and CSS-first
 theme live in [src/app/globals.css](src/app/globals.css); component utilities live
-in [src/client/App.tsx](src/client/App.tsx).
+in [src/client/App.tsx](src/client/App.tsx) and `src/components`.
 
 Inter Tight (sans) and JetBrains Mono (mono) are bundled locally with Fontsource.
 Icons use Hugeicons' free Stroke Rounded set, with named imports from
 `@hugeicons/core-free-icons` rendered by `@hugeicons/react`. No font or icon CDN is used.
 Tailwind v4 targets Safari 16.4+, Chrome 111+, and Firefox 128+.
+
+## Job Board
+
+Title search is debounced by 300 ms; country and sort changes request immediately.
+Loading hides stale results and counts. Failed requests offer retry; empty filtered
+results offer a reset to all jobs and newest-first sorting. Clearing search alone
+preserves country and sort.
+
+Pay displays in its original currency: annual amounts rounded to thousands,
+hourly amounts with up to two decimals. Display rounding does not affect sorting.
 
 ## Ingestion and Approval
 
