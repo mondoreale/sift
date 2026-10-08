@@ -1,5 +1,5 @@
 import 'server-only';
-import { feedPaths, fxRates } from './config';
+import { feedPaths, mockedUsdRateProvider } from './config';
 import { ingestFiles } from './ingestion/ingest';
 import { InMemoryJobRepository } from './storage/in-memory-job-repository';
 import type { JobRepository } from './storage/job-repository';
@@ -10,7 +10,7 @@ const state = globalThis as typeof globalThis & {
 
 async function initialize(): Promise<JobRepository> {
     const { jobs } = await ingestFiles(feedPaths(), {
-        rates: fxRates,
+        rateProvider: mockedUsdRateProvider,
         log: (entry) => console.error(JSON.stringify(entry)),
     });
     return new InMemoryJobRepository(jobs);

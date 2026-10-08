@@ -1,7 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { feedPaths, fxRates } from './config';
+import { feedPaths, fxRates, mockedUsdRateProvider } from './config';
 
 describe('startup configuration', () => {
+    it.each([
+        ['USD', 1],
+        ['CAD', 0.74],
+        ['GBP', 1.27],
+        ['EUR', 1.08],
+        ['ZZZ', undefined],
+    ] as const)('returns a mocked async USD rate for %s', async (currency, rate) => {
+        const response = mockedUsdRateProvider(currency);
+
+        expect(response).toBeInstanceOf(Promise);
+        await expect(response).resolves.toBe(rate);
+    });
+
     it('resolves configured paths from the process directory and removes duplicates', () => {
         expect(feedPaths('["one.json","./one.json","two.json"]', '/feeds')).toEqual([
             '/feeds/one.json',

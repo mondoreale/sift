@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
 import type { Job } from '@/contracts';
-import { evaluateApproval, type FxRates, type SalaryPolicy } from '../approval/evaluate';
+import { evaluateApproval, type FxRateProvider, type SalaryPolicy } from '../approval/evaluate';
 import { normalize, type Diagnostic } from './normalize';
 
 export type ReviewEntry = {
@@ -24,7 +24,7 @@ type IngestionLog =
       };
 
 type Options = {
-    rates: FxRates;
+    rateProvider: FxRateProvider;
     salaryPolicy?: SalaryPolicy;
     read?: (path: string) => Promise<string>;
     log?: (entry: IngestionLog) => void;
@@ -63,10 +63,10 @@ export async function ingestFiles(
         for (const [index, raw] of records.entries()) {
             const { candidate, diagnostics } = normalize(raw);
             const result = candidate
-                ? evaluateApproval(
+                ? await evaluateApproval(
                       candidate,
                       `${key}:${index + 1}`,
-                      options.rates,
+                      options.rateProvider,
                       options.salaryPolicy,
                   )
                 : { status: 'rejected' as const, reasons: diagnostics };

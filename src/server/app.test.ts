@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createApp } from './app';
 import { InMemoryJobRepository } from './storage/in-memory-job-repository';
 import { ingestFiles } from './ingestion/ingest';
-import { fxRates } from './config';
+import { mockedUsdRateProvider } from './config';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -18,7 +18,7 @@ describe('HTTP application', () => {
 
     it('returns an empty approved-job list', async () => {
         const { jobs } = await ingestFiles(['empty.json'], {
-            rates: fxRates,
+            rateProvider: mockedUsdRateProvider,
             read: async () => '[]',
         });
         const response = await createApp(new InMemoryJobRepository(jobs)).request('/api/jobs');

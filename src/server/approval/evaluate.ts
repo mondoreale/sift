@@ -3,6 +3,8 @@ import type { Candidate, Diagnostic } from '../ingestion/normalize';
 
 export type FxRates = Readonly<Record<string, number>>;
 
+export type FxRateProvider = (currency: string) => Promise<number | undefined>;
+
 export type SalaryPolicy = (candidate: Candidate, usdAmount: number | null) => Diagnostic[];
 
 export type ApprovalResult =
@@ -28,12 +30,12 @@ export const standardSalaryPolicy: SalaryPolicy = (candidate, usdAmount) => {
           ];
 };
 
-export function evaluateApproval(
+export async function evaluateApproval(
     candidate: Candidate,
     id: string,
-    rates: FxRates,
+    rateProvider: FxRateProvider,
     salaryPolicy: SalaryPolicy = standardSalaryPolicy,
-): ApprovalResult {
+): Promise<ApprovalResult> {
     const reasons: Diagnostic[] = [];
     const add = (code: string, field: string, message: string) =>
         reasons.push(reason(code, field, message));
@@ -96,16 +98,26 @@ export function evaluateApproval(
             'Explicit annual or hourly salary unit is required.',
         );
 
-    const rate = candidate.currency ? rates[candidate.currency] : undefined;
+    let rate: number | undefined;
 
     if (!candidate.currency)
         add('SALARY_CURRENCY_REQUIRED', 'salary.currency', 'Explicit salary currency is required.');
-    else if (rate === undefined || !Number.isFinite(rate) || rate <= 0)
-        add(
-            'CURRENCY_UNSUPPORTED',
-            'salary.currency',
-            'No valid configured USD exchange rate for this currency.',
-        );
+    else {
+        let lookupFailed = false;
+        try {
+            rate = await rateProvider(candidate.currency);
+        } catch {
+            lookupFailed = true;
+            add('FX_SERVICE_UNAVAILABLE', 'salary.currency', 'USD exchange rate lookup failed.');
+        }
+
+        if (!lookupFailed && (rate === undefined || !Number.isFinite(rate) || rate <= 0))
+            add(
+                'CURRENCY_UNSUPPORTED',
+                'salary.currency',
+                'No valid USD exchange rate for this currency.',
+            );
+    }
 
     const usdAmount =
         candidate.amount !== null && rate !== undefined && Number.isFinite(rate) && rate > 0

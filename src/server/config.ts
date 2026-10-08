@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import type { FxRates } from './approval/evaluate';
+import type { FxRateProvider, FxRates } from './approval/evaluate';
 
 export const fxRates: FxRates = Object.freeze({
     USD: 1,
@@ -7,6 +7,8 @@ export const fxRates: FxRates = Object.freeze({
     GBP: 1.27,
     EUR: 1.08,
 });
+
+export const mockedUsdRateProvider: FxRateProvider = async (currency) => fxRates[currency];
 
 export function feedPaths(configured = process.env.JOB_FILES, cwd = process.cwd()): string[] {
     if (configured === undefined)

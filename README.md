@@ -67,7 +67,16 @@ Approval requires:
 - A nonempty description and trusted `English`/`en` label, or `French`/`fr` for CA.
   Description language is **not detected or verified**.
 
-Illustrative USD conversion rates: USD 1, CAD 0.74, GBP 1.27, EUR 1.08.
+USD conversion awaits an injected `FxRateProvider`:
+`(currency: string) => Promise<number | undefined>`. Startup uses
+`mockedUsdRateProvider`, which resolves fixed illustrative rates: USD 1, CAD 0.74,
+GBP 1.27, EUR 1.08. There is no live FX service, HTTP request, or artificial delay;
+a future service adapter can replace the mock through ingestion's `rateProvider` option.
+Failed lookups reject only the affected job with `FX_SERVICE_UNAVAILABLE` and ingestion
+continues, without fallback rates or exposing service errors. Missing or invalid rates
+reject with `CURRENCY_UNSUPPORTED`. Conversion runs during startup ingestion, not search;
+restart to reload feeds and recalculate conversions.
+
 Original pay is preserved; hourly USD is annualized at 2,080 hours **only for sorting**.
 Missing or invalid posting dates remain unknown. Approval rules are independently
 testable; an injected salary policy can introduce exceptions without bypassing other rules.
