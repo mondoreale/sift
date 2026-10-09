@@ -15,6 +15,24 @@ pnpm run dev
 Open http://127.0.0.1:3000. Use `--port 3001` for another port.
 For production, run `pnpm run build` followed by `pnpm run start`.
 
+## Docker
+
+Build and run the production application without installing Node or pnpm locally:
+
+```sh
+docker build -t job-search .
+docker run --rm -p 127.0.0.1:3000:3000 job-search
+```
+
+Open http://127.0.0.1:3000. The image includes both default fixture feeds and runs
+as a non-root user. To use your own feed, mount it read-only and set `JOB_FILES`:
+
+```sh
+docker run --rm -p 127.0.0.1:3000:3000 \
+  --mount type=bind,source="$(pwd)/fixtures/demo.json",target=/app/feed.json,readonly \
+  -e JOB_FILES='["/app/feed.json"]' job-search
+```
+
 ## Checks
 
 ```sh
