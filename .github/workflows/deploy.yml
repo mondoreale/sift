@@ -43,10 +43,13 @@ jobs:
                       fi
                   done
 
+            - name: Install Vercel CLI
+              run: npm install --global vercel@63.1.0
+
             - name: Build and deploy
               shell: bash
               run: |
-                  pnpm dlx vercel@63.1.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
-                  pnpm dlx vercel@63.1.0 build --prod --token="$VERCEL_TOKEN"
-                  deployment_url=$(pnpm dlx vercel@63.1.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+                  vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+                  vercel build --prod --token="$VERCEL_TOKEN"
+                  deployment_url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
                   printf '### Vercel deployment\n\nEnvironment: production\n\nURL: %s\n' "$deployment_url" >> "$GITHUB_STEP_SUMMARY"

@@ -66,6 +66,9 @@ run the workflow. The production deployment URL appears in the run summary.
 Configure application environment variables in Vercel's production environment;
 local `.env.local` files are not uploaded by this workflow.
 
+Next.js output file tracing explicitly includes the fixture JSON feeds in serverless
+bundles. Include any custom `JOB_FILES` feeds in the tracing configuration as well.
+
 To deploy only through this workflow, disable automatic Git deployments in the
 Vercel project settings.
 
