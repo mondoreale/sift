@@ -10,6 +10,9 @@ import './globals.css';
 export const metadata: Metadata = {
     title: 'Job Search',
     description: 'Approved job listings',
+    icons: {
+        icon: { url: '/favicon.svg', type: 'image/svg+xml' },
+    },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
