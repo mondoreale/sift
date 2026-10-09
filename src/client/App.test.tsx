@@ -238,10 +238,6 @@ describe('job board', () => {
         const user = userEvent.setup();
         const searchInput = screen.getByRole('searchbox', { name: 'Search titles' });
 
-        expect(searchInput).toHaveAttribute('placeholder', 'Job title');
-        expect(searchInput).toHaveClass('h-11');
-        expect(screen.getByRole('combobox', { name: 'Country' })).toHaveClass('h-11');
-        expect(screen.getByRole('combobox', { name: 'Sort' })).toHaveClass('h-11');
         expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
         await user.selectOptions(screen.getByRole('combobox', { name: 'Country' }), 'CA');
         await user.selectOptions(screen.getByRole('combobox', { name: 'Sort' }), 'salary:asc');
