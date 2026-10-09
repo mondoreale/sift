@@ -1,0 +1,51 @@
+name: Deploy to Vercel
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: vercel-production
+    cancel-in-progress: false
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        env:
+            CI: 'true'
+            VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+            VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+            VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        steps:
+            - name: Check out repository
+              uses: actions/checkout@v4
+
+            - name: Set up pnpm
+              uses: pnpm/action-setup@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: pnpm
+
+            - name: Validate Vercel configuration
+              shell: bash
+              run: |
+                  for secret_name in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_TOKEN; do
+                      if [[ -z "${!secret_name}" ]]; then
+                          echo "::error::Missing GitHub Actions secret: $secret_name"
+                          exit 1
+                      fi
+                  done
+
+            - name: Build and deploy
+              shell: bash
+              run: |
+                  pnpm dlx vercel@63.1.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
+                  pnpm dlx vercel@63.1.0 build --prod --token="$VERCEL_TOKEN"
+                  deployment_url=$(pnpm dlx vercel@63.1.0 deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+                  printf '### Vercel deployment\n\nEnvironment: production\n\nURL: %s\n' "$deployment_url" >> "$GITHUB_STEP_SUMMARY"

@@ -49,6 +49,24 @@ Browser tests cover desktop/mobile and start their own server on port 3100;
 stop the development server first. Screenshots and traces go to `test-results/`.
 Use `pnpm run format` to apply the Prettier rules.
 
+## Vercel Deployment
+
+The **Deploy to Vercel** GitHub Actions workflow runs manually and deploys only to
+production. Create or link a Vercel project, configure it to use Node 22, and add
+these repository Actions secrets:
+
+- `VERCEL_TOKEN`: a Vercel access token with access to the project.
+- `VERCEL_ORG_ID`: the team or account ID from `.vercel/project.json` after linking.
+- `VERCEL_PROJECT_ID`: the project ID from `.vercel/project.json` after linking.
+
+In GitHub, open **Actions > Deploy to Vercel > Run workflow**, choose a branch, and
+run the workflow. The production deployment URL appears in the run summary.
+Configure application environment variables in Vercel's production environment;
+local `.env.local` files are not uploaded by this workflow.
+
+To deploy only through this workflow, disable automatic Git deployments in the
+Vercel project settings.
+
 ## Structure
 
 - `src/app`: pages, layout, and API routes.
