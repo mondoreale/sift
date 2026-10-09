@@ -52,8 +52,10 @@ Use `pnpm run format` to apply the Prettier rules.
 ## Vercel Deployment
 
 The **Deploy to Vercel** GitHub Actions workflow runs manually and deploys only to
-production. Create or link a Vercel project, configure it to use Node 22, and add
-these repository Actions secrets:
+production. The deployment job uses GitHub's `production` environment, including
+its approval and branch protection rules. Create or link a Vercel project,
+configure it to use Node 22, and add these environment secrets under
+**Settings > Environments > production** in the GitHub repository:
 
 - `VERCEL_TOKEN`: a Vercel access token with access to the project.
 - `VERCEL_ORG_ID`: the team or account ID from `.vercel/project.json` after linking.
